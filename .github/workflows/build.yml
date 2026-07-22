@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # Tối ưu kích thước binary (như workflow cũ)
       CFLAGS: "-Oz -flto -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -Wl,--gc-sections -s"
 
     steps:
@@ -60,37 +59,30 @@ jobs:
           "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" --strip-all build/x86_64/PingPimp
           echo "x86_64 size: $(ls -lh build/x86_64/PingPimp | awk '{print $5}')"
 
-      - name: Prepare PingPimp module
+      - name: Prepare Magisk module
         run: |
           MODULE_DIR="PingPimp"
           mkdir -p "$MODULE_DIR/system/bin"
-
-          # Copy template (module.prop, service.sh, customize.sh, action.sh, uninstall.sh)
-          # Giả sử các file này nằm trong thư mục template_pingpimp
-          cp -r template_pingpimp/* "$MODULE_DIR/" 2>/dev/null || true
-
-          # Copy WebUI (webroot)
-          # Giả sử webroot nằm ở thư mục gốc của repo
-          cp -r webroot "$MODULE_DIR/" 2>/dev/null || true
-
-          # Copy các binary với hậu tố kiến trúc
+          
+          # Copy template files (tất cả file module)
+          cp -r template_pingpimp/* "$MODULE_DIR/"
+          
+          # Copy binaries
           cp build/armv7/PingPimp "$MODULE_DIR/system/bin/PingPimp_32"
           cp build/armv8/PingPimp "$MODULE_DIR/system/bin/PingPimp_64"
           cp build/x86/PingPimp "$MODULE_DIR/system/bin/PingPimp_x86"
           cp build/x86_64/PingPimp "$MODULE_DIR/system/bin/PingPimp_x64"
-
-          # Phân quyền
+          
+          # Copy WebUI (nếu có)
+          if [ -d "webroot" ]; then
+            cp -r webroot "$MODULE_DIR/"
+          fi
+          
+          # Set permissions
           chmod 755 "$MODULE_DIR/system/bin/"*
           find "$MODULE_DIR" -type f -name "*.sh" -exec chmod 755 {} +
-          find "$MODULE_DIR" -type f -name "*.html" -exec chmod 644 {} \;
-          find "$MODULE_DIR" -type f -name "*.css" -exec chmod 644 {} \;
-          find "$MODULE_DIR" -type f -name "*.js" -exec chmod 644 {} \;
-          find "$MODULE_DIR" -type f -name "*.json" -exec chmod 644 {} \;
-          find "$MODULE_DIR" -type f -name "*.png" -exec chmod 644 {} \;
-          find "$MODULE_DIR" -type f -name "*.gif" -exec chmod 644 {} \;
-          find "$MODULE_DIR" -type f -name "*.woff2" -exec chmod 644 {} \;
-
-          # Nén module với mức độ cao nhất
+          
+          # Zip
           cd "$MODULE_DIR" && zip -r9 "../PingPimp.zip" . && cd ..
 
       - name: Upload artifact
