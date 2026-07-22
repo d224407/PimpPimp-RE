@@ -65,7 +65,7 @@ jobs:
           mkdir -p "$MODULE_DIR/system/bin"
           
           # Copy template files (tất cả file module)
-          cp -r template_pingpimp/* "$MODULE_DIR/"
+          cp -r template/* "$MODULE_DIR/"
           
           # Copy binaries
           cp build/armv7/PingPimp "$MODULE_DIR/system/bin/PingPimp_32"
