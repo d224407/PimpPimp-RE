@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>PingPimp</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "kernelsu": "https://esm.run/kernelsu"
+      }
+    }
+  </script>
+  <style>
+    /* ============================================================
+       CSS inlined from pingpimp.css
+       ============================================================ */
+    @import "https://mui.kernelsu.org/internal/insets.css";
+    @import "https://mui.kernelsu.org/internal/colors.css";
+
+    /* === LOAD OFFLINE FONT === */
+    @font-face {
+      font-family: 'Material Symbols Outlined';
+      font-style: normal;
+      font-weight: 100 700;
+      src: url('assets/material-symbols-outlined.woff2') format('woff2');
+    }
+
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-feature-settings: 'liga';
+    }
+
+    :root {
+      --fallback-bg: #000000;
+      --fallback-card: #24273a;
+      --fallback-primary: #fcb6e8;
+      --fallback-on-primary: #292929;
+      --fallback-on-surface: #e6e1e5;
+
+      --app-primary: var(--primary, var(--fallback-primary));
+      --app-on-primary: var(--onPrimary, var(--fallback-on-primary));
+      --app-primary-container: var(--primaryContainer, var(--fallback-primary));
+      --app-on-primary-container: var(--onPrimaryContainer, var(--fallback-on-primary));
+      
+      --app-bg: var(--background, var(--fallback-bg));
+      --app-surface: var(--surfaceContainer, var(--fallback-card));
+      --app-surface-high: var(--surfaceContainerHigh, #36343b); 
+      --app-surface-highest: var(--surfaceContainerHighest, #49454f);
+      --app-on-surface: var(--onSurface, var(--fallback-on-surface));
+      --app-on-surface-variant: var(--onSurfaceVariant, #cac4d0);
+      --app-outline: var(--outline, #938f99);
+      --app-outline-variant: rgba(128, 128, 128, 0.2);
+
+      --overlay-light: rgba(128, 128, 128, 0.1);
+      --overlay-medium: rgba(128, 128, 128, 0.15);
+
+      --radius: 18px;
+    }
+
+    * {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      font-family: "SF Pro Display", "Roboto", sans-serif;
+      background-color: var(--app-bg);
+      color: var(--app-on-surface);
+      padding: 0; min-height: 100vh;
+      padding-top: calc(96px + var(--window-inset-top, 0px));
+      padding-bottom: calc(120px + var(--window-inset-bottom, 0px)); 
+    }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      height: calc(80px + var(--window-inset-top, 0px));
+      padding: var(--window-inset-top, 0px) 24px 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      background-color: transparent; 
+    }
+    header::before {
+      content: ""; position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--app-bg); opacity: 0.85;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      z-index: -1;
+    }
+
+    .header-title {
+      font-size: 28px; font-weight: 800; color: var(--app-on-surface);
+      display: flex; align-items: center; gap: 14px; letter-spacing: -0.6px;
+    }
+    .header-title .material-symbols-outlined { font-size: 28px; color: var(--app-primary); flex-shrink: 0; }
+
+    .main { max-width: 500px; margin: 0 auto; padding: 0 16px; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .banner {
+      width: 100%; border-radius: var(--radius); overflow: hidden;
+      margin-bottom: 20px; position: relative;
+    }
+    .banner img { width: 100%; height: 180px; object-fit: cover; display: block; }
+    .banner-message {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background-color: rgba(0, 0, 0, 0.65); color: white; 
+      padding: 8px 16px; font-size: 14px; font-weight: 600; text-align: center;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+
+    .device-info, .dev-card, .custom-card {
+      background-color: var(--app-surface);
+      border-radius: 24px;
+      margin-bottom: 16px;
+      border: none; 
+    }
+
+    .device-info-item {
+      padding: 14px 16px; display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 4px;
+    }
+    .device-info-item:last-child { margin-bottom: 0; }
+    .device-info-item .label {
+      display: flex; align-items: center; font-size: 14px; font-weight: 500; color: var(--app-on-surface);
+    }
+    .device-info-item .label .material-symbols-outlined { font-size: 20px; margin-right: 12px; color: var(--app-primary); flex-shrink: 0; }
+    .device-info-item .value {
+      font-size: 14px; font-weight: 600; color: var(--app-on-surface); opacity: 0.8; text-align: right;
+    }
+    .device-info-item .value#PingPimpVer { color: var(--app-primary); font-weight: 700; opacity: 1; }
+
+    .dev-card { padding: 20px; }
+    .dev-profile { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .dev-avatar {
+      width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+      border: 2px solid var(--app-primary); 
+    }
+    .dev-info { display: flex; flex-direction: column; }
+    .dev-username { font-size: 18px; font-weight: 700; color: var(--app-primary); margin-bottom: 4px; }
+    .dev-desc { font-size: 13px; color: var(--app-on-surface); opacity: 0.7; }
+    .dev-links { display: flex; gap: 12px; }
+
+    .pill-btn {
+      flex: 1; padding: 10px 16px; border-radius: 20px;
+      background-color: var(--overlay-light); color: var(--app-on-surface);
+      text-align: center; font-size: 14px; font-weight: 600; text-decoration: none;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.2s ease; cursor: pointer; border: none;
+    }
+    .pill-btn .material-symbols-outlined { font-size: 18px; flex-shrink: 0; }
+    .pill-btn:hover { background-color: var(--overlay-medium); }
+    .pill-btn:active { transform: scale(0.96); }
+
+    .solid-btn {
+      background-color: var(--app-primary) !important;
+      color: var(--app-on-primary) !important; font-weight: 700;
+    }
+
+    .custom-card { padding: 20px; }
+    .custom-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .custom-card-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background-color: var(--app-primary-container); color: var(--app-on-primary-container);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .custom-card-icon .material-symbols-outlined { font-size: 20px; flex-shrink: 0; }
+
+    .custom-card-title { font-size: 18px; font-weight: 600; color: var(--app-on-surface); }
+    .custom-card-desc {
+      background-color: var(--app-bg); border-radius: 16px; padding: 12px 16px;
+      margin-bottom: 16px; font-size: 14px; color: var(--app-on-surface); opacity: 0.8; line-height: 1.5;
+    }
+
+    .custom-option {
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+      margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--overlay-light);
+    }
+    .custom-option:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .custom-label { font-size: 14px; font-weight: 500; color: var(--app-on-surface); white-space: nowrap; }
+
+    .custom-option-vertical {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--overlay-light);
+    }
+    .custom-option-vertical:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .pingpimp-select {
+      width: 100%;
+      padding: 16px 20px;
+      border-radius: 16px;
+      background-color: var(--app-surface-high);
+      border: none; 
+      color: var(--app-on-surface);
+      font-size: 15px;
+      font-family: inherit;
+      font-weight: 500;
+      -moz-appearance: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='gray'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 24px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .pingpimp-select:focus {
+      outline: none;
+      background-color: var(--app-surface-highest);
+      box-shadow: inset 0 0 0 2px var(--app-primary);
+    }
+
+    .pingpimp-select option {
+      color: var(--app-on-surface);
+      background-color: var(--app-surface);
+    }
+
+    .custom-input-container {
+      background-color: var(--app-surface-highest);
+      padding: 16px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+    .custom-input-label {
+      font-size: 13px; font-weight: 600;
+      color: var(--app-on-surface); opacity: 0.7;
+      margin-bottom: 10px;
+    }
+
+    .custom-switch {
+      position: relative; 
+      display: inline-block;
+      width: 52px; 
+      height: 32px; 
+      flex-shrink: 0;
+      z-index: 2;
+      pointer-events: auto;
+    }
+    .custom-switch input { opacity: 0; width: 0; height: 0; }
+
+    .switch-slider {
+      position: absolute; 
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--app-surface-high);
+      border: 2px solid var(--app-outline);
+      transition: all .4s cubic-bezier(.2, 0, 0, 1);
+      border-radius: 16px;
+    }
+
+    .switch-slider:before {
+      position: absolute; 
+      content: "";
+      top: 50%; 
+      left: 14px;
+      transform: translate(-50%, -50%);
+      height: 16px; 
+      width: 16px;
+      background-color: var(--app-on-surface-variant);
+      transition: all .4s cubic-bezier(.2, 0, 0, 1);
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    input:checked + .switch-slider { 
+      background-color: var(--app-primary); 
+      border-color: var(--app-primary);
+    }
+
+    input:checked + .switch-slider:before {
+      left: 34px;
+      height: 24px; 
+      width: 24px;
+      background-color: var(--app-on-primary);
+    }
+
+    .bottom-navigation {
+      position: fixed;
+      bottom: calc(24px + var(--window-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      min-width: 320px;
+      max-width: 440px;
+      height: 64px;
+      background-color: var(--app-surface-high);
+      border-radius: 100px;
+      padding: 6px;
+      gap: 6px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--app-outline-variant);
+      transition: all .3s cubic-bezier(.2,0,0,1);
+    }
+
+    .nav-button {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: var(--app-on-surface-variant);
+      flex: 1;
+      height: 100%;
+      cursor: pointer;
+      transition: all .3s cubic-bezier(.2,0,0,1);
+      border-radius: 100px;
+      opacity: 0.7;
+      padding: 0;
+      gap: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-button:not(.active):hover {
+      background-color: rgba(255, 255, 255, .04);
+      opacity: 1;
+    }
+
+    .nav-button.active {
+      background-color: var(--app-primary-container);
+      color: var(--app-on-primary-container);
+      flex-grow: 1.4;
+      padding-left: 18px;
+      padding-right: 18px;
+      opacity: 1;
+    }
+
+    .nav-icon-container {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform .3s cubic-bezier(.2,0,0,1);
+      margin: 0;
+    }
+
+    .nav-button.active .nav-icon-container {
+      transform: translateX(-2px);
+    }
+
+    .nav-icon {
+      font-size: 24px;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      transition: all .3s cubic-bezier(.2,0,0,1);
+    }
+
+    .nav-button.active .nav-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .nav-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--app-on-surface);
+      transition: all .3s cubic-bezier(.2,0,0,1);
+      max-width: 0;
+      opacity: 0;
+      transform: translateX(-8px);
+      white-space: nowrap;
+      overflow: hidden;
+      margin-left: 0;
+    }
+
+    .nav-button.active .nav-label {
+      max-width: 90px;
+      opacity: 1;
+      transform: translateX(0);
+      margin-left: 4px;
+      color: var(--app-on-primary-container);
+    }
+
+    #loading-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-color: var(--app-bg); display: flex; align-items: center; justify-content: center;
+      z-index: 9999; color: var(--app-on-surface); font-size: 18px; font-weight: 600;
+    }
+
+    .app-search-input {
+      width: 100%; padding: 16px 20px; border-radius: 20px;
+      background-color: var(--app-surface-high); border: none; 
+      color: var(--app-on-surface); font-size: 15px; outline: none;
+      margin-bottom: 16px; transition: background-color 0.3s ease;
+    }
+    .app-search-input:focus { 
+      background-color: var(--app-surface-highest); 
+      box-shadow: inset 0 0 0 2px var(--app-primary);
+    }
+
+    .isolate-app-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; background-color: var(--app-surface);
+      margin-bottom: 8px; border-radius: 24px; gap: 16px;
+      border: none; 
+      transition: background-color 0.2s ease;
+    }
+    .isolate-content-wrapper { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; }
+
+    .isolate-app-icon {
+      width: 44px; height: 44px; border-radius: 8px; object-fit: contain; flex-shrink: 0;
+    }
+    .isolate-app-icon-placeholder {
+      width: 44px; height: 44px; border-radius: 8px;
+      background-color: var(--app-surface-highest);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      color: var(--app-primary);
+    }
+    .isolate-app-icon-placeholder .material-symbols-outlined {
+      font-size: 24px;
+    }
+
+    .isolate-text-group { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+
+    .isolate-app-label {
+      font-size: 16px; font-weight: 500; color: var(--app-on-surface);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;
+    }
+    .isolate-app-pkg {
+      font-size: 13px; color: var(--app-on-surface); opacity: 0.6;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Tab Header Styles */
+    .tab-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding: 8px 4px;
+    }
+    .tab-header-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background-color: var(--app-primary-container);
+      color: var(--app-on-primary-container);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .tab-header-icon .material-symbols-outlined { font-size: 24px; flex-shrink: 0; }
+
+    .tab-header-text h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--app-on-surface);
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }
+    .tab-header-text p {
+      font-size: 13px;
+      color: var(--app-on-surface);
+      opacity: 0.7;
+      line-height: 1.4;
+    }
+
+    /* App Type Toggle Styles (Chips) */
+    .app-type-toggle {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .app-type-toggle .pill-btn {
+      background-color: var(--app-surface);
+      border: 1px solid var(--overlay-light);
+      color: var(--app-on-surface);
+      opacity: 0.7;
+    }
+    .app-type-toggle .pill-btn.active {
+      background-color: var(--app-primary);
+      color: var(--app-on-primary);
+      border-color: var(--app-primary);
+      opacity: 1;
+    }
+
+    /* Header Icon Button */
+    .icon-button {
+      background: transparent;
+      border: none;
+      color: var(--app-on-surface); 
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .icon-button:active {
+      background-color: var(--app-surface-highest);
+      transform: scale(0.95);
+    }
+    .icon-button .material-symbols-outlined {
+      font-size: 24px; flex-shrink: 0;
+    }
+    .dialog-scrim {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      z-index: 2000; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    }
+    .dialog-scrim.active { opacity: 1; pointer-events: auto; }
+    .dialog-container {
+      background-color: var(--app-surface-high);
+      border-radius: 28px; width: 85%; max-width: 360px;
+      padding: 24px; transform: translateY(20px) scale(0.95); 
+      transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+      border: 1px solid var(--app-outline-variant);
+    }
+    .dialog-scrim.active .dialog-container { transform: translateY(0) scale(1); }
+    .dialog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .dialog-title { font-size: 20px; font-weight: 700; color: var(--app-on-surface); margin: 0; }
+    .language-list { display: flex; flex-direction: column; gap: 8px; }
+    .language-option {
+      padding: 16px 20px; border-radius: 16px; background-color: var(--app-surface);
+      color: var(--app-on-surface); font-size: 15px; font-weight: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent;
+    }
+    .language-option .check-icon { display: none; font-size: 20px; flex-shrink: 0; }
+    .language-option.selected {
+      background-color: var(--app-primary-container);
+      color: var(--app-on-primary-container);
+      border-color: var(--app-primary);
+    }
+    .language-option.selected .check-icon { display: block; color: var(--app-primary); }
+    .language-option:active { transform: scale(0.97); }
+
+    html[dir="rtl"] .device-info-item .value { text-align: left; }
+    html[dir="rtl"] .custom-card-desc { text-align: right; }
+    html[dir="rtl"] .isolate-text-group { text-align: right; }
+    html[dir="rtl"] .tab-header-text { text-align: right; }
+    html[dir="rtl"] .custom-input-label { text-align: right; }
+    html[dir="rtl"] .pingpimp-select { background-position: left 16px center; text-align: right; }
+    html[dir="rtl"] .device-info-item .label .material-symbols-outlined { 
+      margin-right: 0; 
+      margin-left: 12px; 
+    }
+    html[dir="rtl"] .switch-slider:before {
+      left: auto; 
+      right: 14px; 
+      transform: translate(50%, -50%);
+    }
+    html[dir="rtl"] input:checked + .switch-slider:before {
+      left: auto; 
+      right: 34px;
+    }
+
+    html[dir="rtl"] .nav-label {
+      transform: translateX(8px);
+    }
+    html[dir="rtl"] .nav-button.active .nav-label {
+      transform: translateX(0);
+      margin-left: 0; 
+      margin-right: 4px;
+    }
+    html[dir="rtl"] .nav-button.active .nav-icon-container {
+      transform: translateX(2px);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-title">
+      <span class="material-symbols-outlined">Stacked_Line_Chart</span>
+      PingPimp
+    </div>
+    <button class="icon-button" id="btn-language" aria-label="Change Language">
+      <span class="material-symbols-outlined">Translate</span>
+    </button>
+  </header>
+  
+  <div class="main">
+    <div id="tab-home" class="tab-content active">
+    
+      <div class="banner">
+        <img src="assets/a.gif" alt="Banner" />
+        <div class="banner-message" id="banner-message">Loading...</div>
+      </div>
+      
+      <div class="device-info" role="group" aria-label="Device information">
+        <div class="device-info-item">
+          <div class="label">
+            <span class="material-symbols-outlined">stars</span>
+            <span data-i18n="devInfoVer">PingPimp Version</span>
+          </div>
+          <div class="value" id="PingPimpVer">Detecting...</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label">
+            <span class="material-symbols-outlined">smartphone</span>
+            <span data-i18n="devInfoModel">Device Model</span>
+          </div>
+          <div class="value" id="device-model">-</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label">
+            <span class="material-symbols-outlined">android</span>
+            <span data-i18n="devInfoAndroid">Android Version</span>
+          </div>
+          <div class="value" id="device-android">-</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label">
+            <span class="material-symbols-outlined">memory</span>
+            <span data-i18n="devInfoKernel">Kernel</span>
+          </div>
+          <div class="value" id="device-kernel">-</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label">
+            <span class="material-symbols-outlined">laptop_mac</span>
+            <span data-i18n="devInfoChipset">Chipset</span>
+          </div>
+          <div class="value" id="device-chipset">-</div>
+        </div>
+        <div class="device-info-item">
+          <div class="label">
+            <span class="material-symbols-outlined">wifi_tethering</span>
+            <span data-i18n="devInfoPing">Live Ping</span>
+          </div>
+          <div class="value" id="live-ping" style="color: var(--app-primary);">Measuring...</div>
+        </div>
+      </div>
+      
+      <div class="dev-card">
+        <div class="dev-profile">
+          <img src="assets/profil.png" alt="Developer Avatar" class="dev-avatar" />
+          <div class="dev-info">
+            <div class="dev-username">@fuckyoustan</div>
+            <div class="dev-desc" data-i18n="devDesc">The Script Kiddie</div>
+          </div>
+        </div>
+        <div class="dev-links">
+          <a href="#" class="pill-btn" id="btn-github">
+            <span class="material-symbols-outlined">code</span> 
+            <span data-i18n="btnGithub">GitHub</span>
+          </a>
+          <a href="#" class="pill-btn" id="btn-telegram">
+            <span class="material-symbols-outlined">send</span> 
+            <span data-i18n="btnTelegram">Telegram</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="home-footer" style="text-align: center; font-size: 12px; color: var(--app-on-surface); opacity: 0.5; margin-top: 16px; padding-bottom: 8px;" data-i18n="footerText">
+        created by @fuckyoustan with ❤️
+      </div>
+    </div>
+
+    <div id="tab-config" class="tab-content">
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-outlined">Network_Node</span>
+          </div>
+          <div class="custom-card-title" data-i18n="tabConfigTitle1">Network Tweak</div>
+        </div>
+        <div class="custom-card-desc" data-i18n="tabConfigDesc1">
+          Set the preset tweak according to your needs and select the TCP algorithm you want.
+        </div>
+        <div class="custom-option-vertical">
+          <span class="custom-label" data-i18n="optPreset">Preset Tweak</span>
+          <select id="select-preset" class="pingpimp-select"></select>
+        </div>
+        <div class="custom-option-vertical" style="padding-bottom:0; border-bottom:none;">
+          <span class="custom-label" data-i18n="optTcp">TCP Algorithm</span>
+          <select id="select-tcp" class="pingpimp-select"></select>
+        </div>
+      </div>
+      
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-outlined">dns</span>
+          </div>
+          <div class="custom-card-title" data-i18n="tabConfigTitle2">Private DNS</div>
+        </div>
+        <div class="custom-card-desc" data-i18n="tabConfigDesc2">
+          Secure your DNS queries with encrypted DNS providers. Choose a trusted resolver below.
+        </div>
+        <div class="custom-option-vertical" style="padding-bottom:0; border-bottom:none;">
+          <span class="custom-label" data-i18n="optDns">DNS Option</span>
+          <select id="select-dns" class="pingpimp-select"></select>
+          
+          <div id="custom-dns-container" class="custom-input-container" style="display: none;">
+            <div class="custom-input-label" data-i18n="customDnsLabel">Enter Custom DNS Provider</div>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="custom-dns-input" class="app-search-input" data-i18n-placeholder="customDnsPlaceholder" placeholder="e.g. dns.adguard-dns.com" style="margin-bottom: 0; padding: 12px 16px; height: auto; flex: 1; background-color: var(--app-bg);">
+              <button id="btn-save-custom-dns" class="pill-btn solid-btn" style="flex: 0 0 auto; margin: 0; padding: 0 20px;" data-i18n="btnSet">Set</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-outlined">wifi</span>
+          </div>
+          <div class="custom-card-title" data-i18n="tabConfigTitle3">Optimize Internet</div>
+        </div>
+        <div class="custom-card-desc" data-i18n="tabConfigDesc3">
+          Increase network speed by disabling netstats and optimizing wifi connectivity.
+        </div>
+        <div class="custom-option" style="padding-bottom:0; border-bottom:none;">
+          <span class="custom-label" data-i18n="optNetState">Disable Network State</span>
+          <label class="custom-switch">
+            <input type="checkbox" id="switch-netstate">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-outlined">vpn_lock</span>
+          </div>
+          <div class="custom-card-title" data-i18n="tabConfigTitle4">Disable IPv6</div>
+        </div>
+        <div class="custom-card-desc" data-i18n="tabConfigDesc4">
+          Force IPv4 routing to prevent IPv6 DNS leaks, routing issues, and high latency in games.
+        </div>
+        <div class="custom-option" style="padding-bottom:0; border-bottom:none;">
+          <span class="custom-label" data-i18n="optIpv6">Disable IPv6 Connection</span>
+          <label class="custom-switch">
+            <input type="checkbox" id="switch-ipv6">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="custom-card">
+        <div class="custom-card-header">
+          <div class="custom-card-icon">
+            <span class="material-symbols-outlined">data_saver_on</span>
+          </div>
+          <div class="custom-card-title" data-i18n="tabConfigTitle5">Ultra Data Saver</div>
+        </div>
+        <div class="custom-card-desc" data-i18n="tabConfigDesc5">
+          Restricts background data and limit internet speed to only 1mb/s.
+        </div>
+        <div class="custom-option" style="padding-bottom:0; border-bottom:none;">
+          <span class="custom-label" data-i18n="optDataSaver">Enable Data Saver</span>
+          <label class="custom-switch">
+            <input type="checkbox" id="switch-saver">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>      
+    </div>
+
+    <div id="tab-isolate" class="tab-content">
+      <div class="tab-header">
+        <div class="tab-header-icon">
+          <span class="material-symbols-outlined">Shield</span>
+        </div>
+        <div class="tab-header-text">
+          <h2 data-i18n="tabIsolateTitle">Isolate Apps</h2>
+          <p data-i18n="tabIsolateDesc">Block internet access for specific apps to prevent background data usage and interruptions.</p>
+        </div>
+      </div>
+      
+      <input type="text" id="isolate-search" data-i18n-placeholder="searchIsolate" placeholder="Search apps to isolate..." class="app-search-input" />
+      
+      <div class="app-type-toggle">
+        <button class="pill-btn active" id="btn-user-apps-isolate" data-i18n="btnUserApps">User Apps</button>
+        <button class="pill-btn" id="btn-system-apps-isolate" data-i18n="btnSystemApps">System Apps</button>
+      </div>
+      
+      <div id="isolate-list-container" style="margin-bottom: 16px;"></div>
+    </div>
+
+    <div id="tab-prioritize" class="tab-content">
+      <div class="tab-header">
+        <div class="tab-header-icon">
+          <span class="material-symbols-outlined">rocket_launch</span>
+        </div>
+        <div class="tab-header-text">
+          <h2 data-i18n="tabBoostTitle">Boost Apps</h2>
+          <p data-i18n="tabBoostDesc">Prioritize network traffic for specific games or apps to reduce latency and ping drops.</p>
+        </div>
+      </div>
+      
+      <input type="text" id="prioritize-search" data-i18n-placeholder="searchBoost" placeholder="Search apps to boost..." class="app-search-input" />
+      
+      <div class="app-type-toggle">
+        <button class="pill-btn active" id="btn-user-apps-prioritize" data-i18n="btnUserApps">User Apps</button>
+        <button class="pill-btn" id="btn-system-apps-prioritize" data-i18n="btnSystemApps">System Apps</button>
+      </div>
+      
+      <div id="prioritize-list-container" style="margin-bottom: 16px;"></div>
+    </div>
+
+  </div>
+  
+  <nav class="bottom-navigation" id="bottomNav">
+    <button class="nav-button active" data-target="home">
+        <div class="nav-icon-container">
+            <span class="material-symbols-outlined nav-icon">home</span>
+        </div>
+        <span class="nav-label" data-i18n="navHome">Home</span>
+    </button>
+    <button class="nav-button" data-target="config">
+        <div class="nav-icon-container">
+            <span class="material-symbols-outlined nav-icon">settings</span>
+        </div>
+        <span class="nav-label" data-i18n="navConfig">Config</span>
+    </button>
+    <button class="nav-button" data-target="isolate">
+        <div class="nav-icon-container">
+            <span class="material-symbols-outlined nav-icon">shield</span>
+        </div>
+        <span class="nav-label" data-i18n="navIsolate">Isolate</span>
+    </button>
+    <button class="nav-button" data-target="prioritize">
+        <div class="nav-icon-container">
+            <span class="material-symbols-outlined nav-icon">rocket_launch</span>
+        </div>
+        <span class="nav-label" data-i18n="navBoost">Boost</span>
+    </button>
+  </nav>
+
+  <div class="dialog-scrim" id="languageDialog">
+    <div class="dialog-container">
+      <div class="dialog-header">
+        <h3 class="dialog-title" data-i18n="langTitle">Select Language</h3>
+        <button class="icon-button" id="closeLangDialog">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="language-list">
+        <div class="language-option" data-lang="en">
+          <span>English</span> <span class="material-symbols-outlined check-icon">check_circle</span>
+        </div>
+        <div class="language-option" data-lang="id">
+          <span>Bahasa Indonesia</span> <span class="material-symbols-outlined check-icon">check_circle</span>
+        </div>
+        <div class="language-option" data-lang="jv">
+          <span>Boso Jowo</span> <span class="material-symbols-outlined check-icon">check_circle</span>
+        </div>
+        <div class="language-option" data-lang="ja">
+          <span>日本語</span> <span class="material-symbols-outlined check-icon">check_circle</span>
+        </div>
+        <div class="language-option" data-lang="ar">
+          <span>العربية</span> <span class="material-symbols-outlined check-icon">check_circle</span>
+        </div>
+        <div class="language-option" data-lang="ru">
+          <span>Русский</span> <span class="material-symbols-outlined check-icon">check_circle</span>
+        </div>
+        <div class="language-option" data-lang="vi">
+          <span>Tiếng Việt</span> <span class="material-symbols-outlined check-icon">check_circle</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading-overlay">Loading...</div>
+
+  <script type="module">
+    // ============================================================
+    // JS inlined from pingpimp.js
+    // ============================================================
+    import { exec as ksuExec, toast, listPackages, getPackagesInfo } from 'kernelsu';
+
+    // === FEATURE: i18n (INTERNATIONALIZATION) ===
+    let currentTranslations = {};
+
+    const defaultMessages = [
+      "Blaming lag? Sounds like a massive skill issue tbh.",
+      "Ping so low I'm literally predicting the future.",
+      "My connection is officially more stable than my mental health.",
+      "They think I'm scripting. Nah, just PingPimp doing its thing.",
+      "Imagine lagging in 2026. Couldn't be me.",
+      "I'd tell you to touch grass, but your ping is too high to render it.",
+      "PingPimp on, brain off, still carrying this team.",
+      "If only PingPimp could optimize my life choices...",
+      "My ping is lower than my GPA right now. We take those.",
+      "Powered by PingPimp. Your excuses are officially invalid.",
+      "Lag? Sorry, I don't speak 'McDonalds Wi-Fi'.",
+      "Running on pure caffeine and 0% packet loss.",
+      "Enemies crying in all-chat is my favorite background music.",
+      "Smooth connection, chaotic gameplay. Perfectly balanced.",
+      "PingPimp: Turning script kiddies into absolute gods since day one."
+    ];
+
+    async function loadLanguage(lang) {
+      try {
+        const response = await fetch(`assets/lang/${lang}.json`);
+        if (!response.ok) throw new Error("Language file not found");
+        currentTranslations = await response.json();
+        
+        localStorage.setItem('pingpimp_lang', lang);
+        
+        if (lang === 'ar') {
+          document.documentElement.setAttribute('dir', 'rtl');
+        } else {
+          document.documentElement.setAttribute('dir', 'ltr');
+        }
+
+        applyTranslations();
+      } catch (error) {
+        console.error("Failed to load language:", lang, error);
+        if (lang !== 'en') loadLanguage('en');
+      }
+    }
+
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (currentTranslations[key]) {
+          el.innerHTML = currentTranslations[key]; 
+        }
+      });
+
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (currentTranslations[key]) {
+          el.placeholder = currentTranslations[key];
+        }
+      });
+
+      const currentLang = localStorage.getItem('pingpimp_lang') || 'en';
+      document.querySelectorAll('.language-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.lang === currentLang);
+      });
+
+      rotateBannerMessage();
+      loadPresetTweakOptions();
+      loadPrivateDnsOptions();
+      renderAppList('isolate');
+      renderAppList('prioritize');
+    }
+
+    function initLanguageModal() {
+      const btnLang = document.getElementById('btn-language');
+      const closeLang = document.getElementById('closeLangDialog');
+      const langDialog = document.getElementById('languageDialog');
+
+      if (btnLang && langDialog) {
+        btnLang.addEventListener('click', () => langDialog.classList.add('active'));
+        closeLang.addEventListener('click', () => langDialog.classList.remove('active'));
+        langDialog.addEventListener('click', (e) => {
+          if (e.target === langDialog) langDialog.classList.remove('active');
+        });
+
+        document.querySelectorAll('.language-option').forEach(opt => {
+          opt.addEventListener('click', () => {
+            loadLanguage(opt.dataset.lang);
+            langDialog.classList.remove('active');
+          });
+        });
+      }
+    }
+
+    // === CONFIGURATION & HELPERS ===
+    function getRandomMessage() {
+      const messagesArray = currentTranslations['bannerMessages'] || defaultMessages;
+      return messagesArray[Math.floor(Math.random() * messagesArray.length)];
+    }
+
+    function rotateBannerMessage() {
+      const el = document.getElementById("banner-message");
+      if (el) el.textContent = getRandomMessage();
+    }
+
+    async function exec(command) {
+      try {
+        const { errno, stdout, stderr } = await ksuExec(command);
+        if (errno !== 0) throw new Error(stderr || `Exit ${errno}`);
+        return stdout.trim();
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    // === NATIVE SELECT INITIALIZATION ===
+    function initNativeSelect(selectId, options, onSelect) {
+      const selectEl = document.getElementById(selectId);
+      if (!selectEl) return;
+      
+      const newSelectEl = selectEl.cloneNode(false);
+      let selectedValue = null;
+      
+      options.forEach(opt => {
+        const optionEl = document.createElement("option");
+        optionEl.value = opt.value;
+        optionEl.textContent = opt.text;
+        if (opt.selected) {
+            selectedValue = opt.value;
+        }
+        newSelectEl.appendChild(optionEl);
+      });
+
+      selectEl.parentNode.replaceChild(newSelectEl, selectEl);
+      
+      if (selectedValue !== null) {
+          newSelectEl.value = selectedValue;
+      }
+      
+      newSelectEl.addEventListener("change", (e) => {
+        const val = e.target.value;
+        const text = e.target.options[e.target.selectedIndex].text;
+        if (onSelect) onSelect(val, text);
+      });
+    }
+
+    // === FEATURE: TCP ALGORITHM ===
+    async function loadTcpAlgorithms() {
+      try {
+        const available = (await exec("cat /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null")).trim();
+        const current = (await exec("cat /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null")).trim();
+        if (!available) {
+          initNativeSelect("select-tcp", [{ text: "Not available", value: "" }], null);
+          return;
+        }
+        const algos = available.split(/\s+/).filter(x => x);
+        const options = algos.map(algo => ({ value: algo, text: algo, selected: algo === current }));
+        
+        initNativeSelect("select-tcp", options, async (value, text) => {
+          if (value) {
+            try {
+                await exec(`echo "${value}" > /data/adb/modules/PingPimp/tcp.txt`);
+                await exec(`echo "${value}" > /proc/sys/net/ipv4/tcp_congestion_control`);
+                toast(`TCP Algorithm set to ${text}`);
+            } catch (err) { toast("Failed to set TCP algorithm"); }
+          }
+        });
+      } catch (err) { initNativeSelect("select-tcp", [{ text: "Error loading", value: "" }], null); }
+    }
+
+    // === FEATURE: PRIVATE DNS ===
+    const getDnsOptionsList = () => {
+      const t = (key, fallback) => currentTranslations[key] || fallback;
+      return [
+        { value: 'default', text: t('dnsDefault', 'Default') },
+        { value: 'custom', text: t('dnsCustom', 'Custom DNS') }, 
+        { value: '360', text: '360 Secure DNS' },
+        { value: 'adguard', text: 'AdGuard' },
+        { value: 'adguard-family', text: 'AdGuard Family' },
+        { value: 'adguard-unfiltered', text: 'AdGuard Unfiltered' },
+        { value: 'aha-chicago', text: 'AhaDNS Chicago' },
+        { value: 'aha-india', text: 'AhaDNS India' },
+        { value: 'aha-italy', text: 'AhaDNS Italy' },
+        { value: 'aha-losangeles', text: 'AhaDNS Los Angeles' },
+        { value: 'aha-netherlands', text: 'AhaDNS Netherlands' },
+        { value: 'aha-newyork', text: 'AhaDNS New York' },
+        { value: 'aha-norway', text: 'AhaDNS Norway' },
+        { value: 'aha-poland', text: 'AhaDNS Poland' },
+        { value: 'aha-spain', text: 'AhaDNS Spain' },
+        { value: 'ali', text: 'AliDNS' },
+        { value: 'applied-privacy', text: 'Applied Privacy DNS' },
+        { value: 'arapurayil', text: 'Arapurayil DNS' },
+        { value: 'bitgeek', text: 'BitGeek DNS' },
+        { value: 'bitwiseshift', text: 'BitwiseShift DNS' },
+        { value: 'blah-finland', text: 'Blah DNS Finland' },
+        { value: 'blah-germany', text: 'Blah DNS Germany' },
+        { value: 'blah-japan', text: 'Blah DNS Japan' },
+        { value: 'censurfridns-anycast', text: 'UncensoredDNS Anycast' },
+        { value: 'censurfridns-unicast', text: 'UncensoredDNS Unicast' },
+        { value: 'cfiec', text: 'CFIEC Public DNS' },
+        { value: 'cira-private', text: 'CIRA Private' },
+        { value: 'cira-protected', text: 'CIRA Protected' },
+        { value: 'cleanbrowsing', text: 'CleanBrowsing' },
+        { value: 'cleanbrowsing-adult', text: 'CleanBrowsing Adult' },
+        { value: 'cleanbrowsing-family', text: 'CleanBrowsing Family' },
+        { value: 'cleanbrowsing-security', text: 'CleanBrowsing Security' },
+        { value: 'cloudflare-family', text: 'Cloudflare Family' },
+        { value: 'cloudflare-security', text: 'Cloudflare Security' },
+        { value: 'cloudflare-standard', text: 'Cloudflare Standard' },
+        { value: 'cmrg', text: 'CMRG DNS' },
+        { value: 'comss-east', text: 'Comss East DNS' },
+        { value: 'comss-west', text: 'Comss West DNS' },
+        { value: 'controld-ads', text: 'ControlD Block Ads' },
+        { value: 'controld-malware', text: 'ControlD Block Malware' },
+        { value: 'controld-nonfiltering', text: 'ControlD Non-filtering' },
+        { value: 'controld-social', text: 'ControlD Block Social' },
+        { value: 'cznic', text: 'CZ.NIC ODVR' },
+        { value: 'dandelionsprout', text: 'Dandelion Sprout DNS' },
+        { value: 'decloudus', text: 'DeCloudUs DNS' },
+        { value: 'digitale-gesellschaft', text: 'Digitale Gesellschaft DNS' },
+        { value: 'dnsforfamily', text: 'DNS For Family' },
+        { value: 'dnsforge', text: 'DNS Forge' },
+        { value: 'dnslify', text: 'DNSlify DNS' },
+        { value: 'dnspod', text: 'DNSPod Public DNS+' },
+        { value: 'dnsprivacy1', text: 'DNS Privacy AT 1' },
+        { value: 'dnsprivacy2', text: 'DNS Privacy AT 2' },
+        { value: 'ffmuc', text: 'FFMUC DNS' },
+        { value: 'future', text: 'Future DNS' },
+        { value: 'getdnsapi', text: 'Stubby DNS (getdnsapi.net)' },
+        { value: 'go6lab', text: 'Go6Lab DNS' },
+        { value: 'google', text: 'Google DNS' },
+        { value: 'ibksturm', text: 'ibksturm DNS' },
+        { value: 'iij', text: 'IIJ DNS' },
+        { value: 'larsdebruin', text: 'Lars de Bruin DNS' },
+        { value: 'lelux', text: 'Lelux DNS' },
+        { value: 'libredns', text: 'LibreDNS' },
+        { value: 'mullvad-adblock', text: 'Mullvad Ad Blocking' },
+        { value: 'mullvad-nonfiltering', text: 'Mullvad Non-filtering' },
+        { value: 'nextdns', text: 'NextDNS' },
+        { value: 'nextdns-anycast', text: 'NextDNS Anycast' },
+        { value: 'neutopia', text: 'Neutopia DNS' },
+        { value: 'niccl', text: 'NIC CL DNS' },
+        { value: 'oarc', text: 'OARC DNS' },
+        { value: 'OpenBLD', text: 'OpenBLD DNS' },
+        { value: 'opendns', text: 'OpenDNS' },
+        { value: 'oszx', text: 'OSZX DNS' },
+        { value: 'privacy-japan', text: 'TiarapDNS Japan' },
+        { value: 'privacy-singapore', text: 'TiarapDNS Singapore' },
+        { value: 'pumplex', text: 'PumpleX DNS' },
+        { value: 'quad9-ecs', text: 'Quad9 ECS' },
+        { value: 'quad9-standard', text: 'Quad9 Standard' },
+        { value: 'quad9-unsecured', text: 'Quad9 Unsecured' },
+        { value: 'redfish', text: 'Redfish DNS' },
+        { value: 'restena', text: 'Fondation Restena DNS' },
+        { value: 'rethink-nonfiltering', text: 'RethinkDNS Non-filtering' },
+        { value: 'seby', text: 'SebyDNS' },
+        { value: 'securedns', text: 'SecureDNS EU' },
+        { value: 'sinodun', text: 'dnsovertls.sinodun.com' },
+        { value: 'sinodun1', text: 'dnsovertls1.sinodun.com' },
+        { value: 'snopyta', text: 'Snopyta DNS' },
+        { value: 'switch', text: 'Switch DNS' }
+      ];
+    };
+
+    const dnsMap = {
+      'default': '', 'custom': '', 
+      'cloudflare-standard': 'one.one.one.one',
+      'cloudflare-family': 'family.cloudflare-dns.com',
+      'cloudflare-security': 'security.cloudflare-dns.com',
+      'google': 'dns.google',
+      'quad9-standard': 'dns.quad9.net',
+      'quad9-unsecured': 'dns10.quad9.net',
+      'quad9-ecs': 'dns11.quad9.net',
+      'cleanbrowsing': 'doh.cleanbrowsing.org',
+      'cleanbrowsing-family': 'family-filter-dns.cleanbrowsing.org',
+      'cleanbrowsing-adult': 'adult-filter-dns.cleanbrowsing.org',
+      'cleanbrowsing-security': 'security-filter-dns.cleanbrowsing.org',
+      'nextdns': 'dns.nextdns.io',
+      'nextdns-anycast': 'anycast.dns.nextdns.io',
+      'adguard': 'dns.adguard-dns.com',
+      'adguard-family': 'family.adguard-dns.com',
+      'adguard-unfiltered': 'unfiltered.adguard-dns.com',
+      'opendns': 'dns.opendns.com',
+      'redfish': 'dns.rubyfish.cn',
+      'switch': 'dns.switch.ch',
+      'future': 'dns.futuredns.me',
+      'comss-west': 'dns.comss.one',
+      'comss-east': 'dns.east.comss.one',
+      'cira-private': 'family.canadianshield.cira.ca',
+      'cira-protected': 'protected.canadianshield.cira.ca',
+      'blah-finland': 'dot-fi.blahdns.com',
+      'blah-japan': 'dot-jp.blahdns.com',
+      'blah-germany': 'dot-de.blahdns.com',
+      'snopyta': 'fi.dot.dns.snopyta.org',
+      'dnsforfamily': 'dns-dot.dnsforfamily.com',
+      'cznic': 'odvr.nic.cz',
+      'ali': 'dns.alidns.com',
+      'cfiec': 'dns.cfiec.net',
+      '360': 'dot.360.cn',
+      'iij': 'public.dns.iij.jp',
+      'dnspod': 'dot.pub',
+      'privacy-singapore': 'dot.tiarap.org',
+      'privacy-japan': 'jp.tiar.app',
+      'oszx': 'dns.oszx.co',
+      'pumplex': 'dns.pumplex.com',
+      'applied-privacy': 'dot1.applied-privacy.net',
+      'decloudus': 'dns.decloudus.com',
+      'lelux': 'resolver-eu.lelux.fi',
+      'dnsforge': 'dnsforge.de',
+      'restena': 'kaitain.restena.lu',
+      'ffmuc': 'dot.ffmuc.net',
+      'digitale-gesellschaft': 'dns.digitale-gesellschaft.ch',
+      'libredns': 'dot.libredns.gr',
+      'ibksturm': 'ibksturm.synology.me',
+      'getdnsapi': 'getdnsapi.net',
+      'sinodun': 'dnsovertls.sinodun.com',
+      'sinodun1': 'dnsovertls1.sinodun.com',
+      'censurfridns-unicast': 'unicast.censurfridns.dk',
+      'censurfridns-anycast': 'anycast.censurfridns.dk',
+      'cmrg': 'dns.cmrg.net',
+      'larsdebruin': 'dns.larsdebruin.net',
+      'bitwiseshift': 'dns-tls.bitwiseshift.net',
+      'dnsprivacy1': 'ns1.dnsprivacy.at',
+      'dnsprivacy2': 'ns2.dnsprivacy.at',
+      'bitgeek': 'dns.bitgeek.in',
+      'neutopia': 'dns.neutopia.org',
+      'go6lab': 'privacydns.go6lab.si',
+      'securedns': 'dot.securedns.eu',
+      'niccl': 'dnsotls.lab.nic.cl',
+      'oarc': 'tls-dns-u.odvr.dns-oarc.net',
+      'aha-netherlands': 'dot.nl.ahadns.net',
+      'aha-india': 'dot.in.ahadns.net',
+      'aha-losangeles': 'dot.la.ahadns.net',
+      'aha-newyork': 'dot.ny.ahadns.net',
+      'aha-poland': 'dot.pl.ahadns.net',
+      'aha-italy': 'dot.it.ahadns.net',
+      'aha-spain': 'dot.es.ahadns.net',
+      'aha-norway': 'dot.no.ahadns.net',
+      'aha-chicago': 'dot.chi.ahadns.net',
+      'seby': 'dot.seby.io',
+      'dnslify': 'doh.dnslify.com',
+      'rethink-nonfiltering': 'max.rethinkdns.com',
+      'controld-nonfiltering': 'p0.freedns.controld.com',
+      'controld-malware': 'p1.freedns.controld.com',
+      'controld-ads': 'p2.freedns.controld.com',
+      'controld-social': 'p3.freedns.controld.com',
+      'mullvad-nonfiltering': 'doh.mullvad.net',
+      'mullvad-adblock': 'adblock.doh.mullvad.net',
+      'arapurayil': 'dns.arapurayil.com',
+      'OpenBLD': 'ric.openbld.net',
+      'dandelionsprout': 'dandelionsprout.asuscomm.com'
+    };
+
+    function loadPrivateDnsOptions() {
+      const savedValue = localStorage.getItem('pingpimp_dns') || 'default';
+      const customContainer = document.getElementById('custom-dns-container');
+      const customInput = document.getElementById('custom-dns-input');
+      
+      if (savedValue === 'custom') {
+        customContainer.style.display = 'block';
+        customInput.value = localStorage.getItem('pingpimp_custom_dns') || '';
+      }
+
+      const options = getDnsOptionsList().map(opt => ({
+        ...opt,
+        selected: opt.value === savedValue
+      }));
+      
+      initNativeSelect("select-dns", options, async (value, text) => {
+        localStorage.setItem('pingpimp_dns', value);
+        
+        if (value === 'custom') {
+          customContainer.style.display = 'block';
+          const savedCustom = localStorage.getItem('pingpimp_custom_dns') || '';
+          customInput.value = savedCustom;
+          if (savedCustom) {
+            try {
+              await exec(`settings put global private_dns_mode hostname`);
+              await exec(`settings put global private_dns_specifier ${savedCustom}`);
+              toast(`DNS set to Custom: ${savedCustom}`);
+            } catch (e) { toast("Failed to set DNS"); }
+          } else {
+            toast("Please enter your custom DNS provider");
+          }
+        } else {
+          customContainer.style.display = 'none';
+          const dotName = dnsMap[value] || '';
+          try {
+            if (value === 'default') {
+              await exec(`settings delete global private_dns_mode`);
+              await exec(`settings delete global private_dns_specifier`);
+            } else {
+              await exec(`settings put global private_dns_mode hostname`);
+              await exec(`settings put global private_dns_specifier ${dotName}`);
+            }
+            toast(`Private DNS set to ${text}`);
+          } catch (e) {
+            toast("Failed to set DNS");
+          }
+        }
+      });
+
+      document.getElementById('btn-save-custom-dns').addEventListener('click', async () => {
+        const customDot = customInput.value.trim();
+        if (!customDot) return toast("DNS address cannot be empty!");
+        
+        localStorage.setItem('pingpimp_custom_dns', customDot);
+        try {
+          await exec(`settings put global private_dns_mode hostname`);
+          await exec(`settings put global private_dns_specifier ${customDot}`);
+          toast(`Custom DNS Applied!`);
+        } catch (e) { toast("Failed to apply custom DNS"); }
+      });
+    }
+
+    // === FEATURE: PRESETS ===
+    const getPresetOptions = () => {
+      const t = (key, fallback) => currentTranslations[key] || fallback;
+      return [
+        { value: 'default', text: t('presetDefault', 'Default') }, 
+        { value: 'game', text: t('presetGame', 'Game') },
+        { value: 'download', text: t('presetDownload', 'Download') }, 
+        { value: 'streaming', text: t('presetStreaming', 'Streaming') },
+        { value: 'social media', text: t('presetSocialMedia', 'Social Media') }, 
+        { value: 'browsing', text: t('presetBrowsing', 'Browsing') },
+        { value: 'outdoor', text: t('presetOutdoor', 'Outdoor') }
+      ];
+    };
+
+    async function loadPresetTweakOptions() {
+      let currentPreset = 'default';
+      try {
+        const content = await exec("cat /data/adb/modules/PingPimp/preset.txt 2>/dev/null");
+        if(content && content.trim() !== '') {
+            currentPreset = content.trim().toLowerCase();
+        }
+      } catch (e) {}
+      
+      const options = getPresetOptions().map(opt => ({ ...opt, selected: opt.value.toLowerCase() === currentPreset }));
+      
+      initNativeSelect("select-preset", options, async (value, text) => {
+        try {
+          await exec(`echo "${value}" > /data/adb/modules/PingPimp/preset.txt`);
+          let cmdFlag = value.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (value === 'social media') cmdFlag = 'social';
+          await exec(`PingPimp --${cmdFlag}`);
+          toast(`Preset tweaked for ${text}`);
+        } catch (err) { toast("Failed to apply preset tweak"); }
+      });
+    }
+
+    // === FEATURE: SWITCHES ===
+    async function initSwitch(id, file, flagOn, flagOff, name) {
+      const switchEl = document.getElementById(id);
+      if (!switchEl) return;
+      try {
+        const content = await exec(`cat /data/adb/modules/PingPimp/${file} 2>/dev/null`);
+        switchEl.checked = content.trim() === "1";
+      } catch (e) { switchEl.checked = false; }
+      
+      switchEl.onchange = async () => {
+        const val = switchEl.checked ? "1" : "0";
+        const cmd = switchEl.checked ? `PingPimp --${flagOn}` : `PingPimp --${flagOff}`;
+        try {
+          await exec(`echo "${val}" > /data/adb/modules/PingPimp/${file}`);
+          await exec(cmd);
+          toast(`${name} ${switchEl.checked ? "Enabled" : "Disabled"}`);
+        } catch (err) {
+          toast(`Failed to toggle ${name}`);
+          switchEl.checked = !switchEl.checked;
+        }
+      };
+    }
+
+    function startPingMonitor() {
+      const pingEl = document.getElementById("live-ping");
+      if (!pingEl) return;
+      async function checkPing() {
+        try {
+          const out = await exec("ping -c 1 -W 1 1.1.1.1");
+          const match = out.match(/time=([\d.]+)\s*ms/);
+          if (match && match[1]) {
+            const pingValue = parseFloat(match[1]);
+            pingEl.textContent = `${pingValue} ms`;
+            if (pingValue < 60) pingEl.style.color = "#69f0ae";
+            else if (pingValue < 120) pingEl.style.color = "#ffd740";
+            else pingEl.style.color = "#ff5252";
+          } else { pingEl.textContent = "Timeout"; pingEl.style.color = "#ff5252"; }
+        } catch (e) { pingEl.textContent = "Offline"; pingEl.style.color = "#ff5252"; }
+        setTimeout(checkPing, 2000);
+      }
+      checkPing();
+    }
+
+    async function updateDeviceInfo() {
+      const setTxt = (id, val) => document.getElementById(id).textContent = val || "-";
+      try {
+        const ver = await exec("grep '^version=' /data/adb/modules/PingPimp/module.prop 2>/dev/null || echo 'version=Unknown'");
+        setTxt("PingPimpVer", ver.replace("version=", "").trim());
+        setTxt("device-kernel", (await exec("uname -r")).trim());
+        setTxt("device-model", (await exec("getprop ro.product.model")).trim());
+        setTxt("device-android", (await exec("getprop ro.build.version.release")).trim());
+        setTxt("device-chipset", (await exec("getprop ro.board.platform")).trim());
+        setTxt("device-abis", (await exec("getprop ro.product.cpu.abilist")).trim());
+      } catch (e) { console.warn("Info fetch error", e); }
+    }
+
+    let isolatedApps = new Set();
+    let prioritizedApps = new Set();
+    let cachedUserApps = [];
+    let cachedSystemApps = []; 
+    let currentIsolateView = 'user'; 
+    let currentPrioritizeView = 'user'; 
+
+    // === APP DETECTION ===
+    async function fetchUserPackagesInfo() {
+      try {
+        cachedUserApps = [];
+        cachedSystemApps = [];
+
+        const t = await exec("pm list packages -3");
+        let thirdPartyPkgs = new Set();
+        if (t) {
+            t.split("\n").forEach(e => {
+                const pkg = e.replace("package:", "").trim();
+                if (pkg) thirdPartyPkgs.add(pkg);
+            });
+        }
+
+        const allPkgsOut = await exec("pm list packages -U");
+        let rawPackages = [];
+
+        if (allPkgsOut) {
+            allPkgsOut.split("\n").forEach(line => {
+                const match = line.match(/^package:(.+)\s+uid:(\d+)$/);
+                if (match) {
+                    rawPackages.push({
+                        packageName: match[1],
+                        uid: match[2],
+                        appLabel: match[1]
+                    });
+                }
+            });
+        }
+
+        await Promise.all(rawPackages.map(async (pkgObj) => {
+            try {
+                const query = JSON.stringify([pkgObj.packageName]);
+                let info = await getPackagesInfo(query);
+
+                if (typeof info === 'string') {
+                    info = JSON.parse(info);
+                }
+
+                if (Array.isArray(info) && info.length > 0) {
+                    const appData = info[0];
+                    const label = appData.appLabel || appData.label || appData.appName;
+                    if (label) {
+                        pkgObj.appLabel = label;
+                    }
+                }
+            } catch (err) {
+            }
+        }));
+
+        rawPackages.forEach(pkg => {
+            if (thirdPartyPkgs.has(pkg.packageName)) {
+                cachedUserApps.push(pkg);
+            } else {
+                cachedSystemApps.push(pkg);
+            }
+        });
+
+      } catch (err) {
+        console.error("Failed to fetch packages:", err);
+        toast("Failed to load application list");
+      }
+    }
+
+    // === BACA LANGSUNG DARI FILE TXT, BUKAN LOCALSTORAGE ===
+    async function loadAppConfigs() {
+        try {
+            const savedIso = await exec("cat /data/adb/modules/PingPimp/isolate_apps.txt 2>/dev/null");
+            if (savedIso) {
+                savedIso.replace(/\n|\r/g, "").split(',').filter(x => x.trim()).forEach(pkg => isolatedApps.add(pkg.trim()));
+            }
+        } catch (e) {}
+
+        try {
+            const savedPrio = await exec("cat /data/adb/modules/PingPimp/boost_apps.txt 2>/dev/null");
+            if (savedPrio) {
+                savedPrio.replace(/\n|\r/g, "").split(',').filter(x => x.trim()).forEach(pkg => prioritizedApps.add(pkg.trim()));
+            }
+        } catch (e) {}
+    }
+
+    function renderAppList(type) {
+      const containerId = type === 'isolate' ? 'isolate-list-container' : 'prioritize-list-container';
+      const searchId = type === 'isolate' ? 'isolate-search' : 'prioritize-search';
+      const activeSet = type === 'isolate' ? isolatedApps : prioritizedApps;
+      
+      const container = document.getElementById(containerId);
+      const searchInput = document.getElementById(searchId);
+      if (!container || !searchInput) return;
+
+      const query = searchInput.value.toLowerCase().trim();
+      
+      let sourceArray = cachedUserApps;
+      if (type === 'isolate' && currentIsolateView === 'system') {
+          sourceArray = cachedSystemApps;
+      } else if (type === 'prioritize' && currentPrioritizeView === 'system') {
+          sourceArray = cachedSystemApps; 
+      }
+      
+      let filtered = sourceArray.filter(pkg => {
+         const name = (pkg.appLabel || "").toLowerCase();
+         const pkgId = pkg.packageName.toLowerCase();
+         return name.includes(query) || pkgId.includes(query);
+      });
+
+      filtered.sort((a, b) => {
+          const aActive = activeSet.has(a.packageName);
+          const bActive = activeSet.has(b.packageName);
+          
+          if (aActive && !bActive) return -1;
+          if (!aActive && bActive) return 1;
+          return (a.appLabel || a.packageName).localeCompare(b.appLabel || b.packageName);
+      });
+
+      container.innerHTML = "";
+      
+      if (filtered.length === 0) {
+          const noAppsText = currentTranslations['noAppsFound'] || 'No apps found';
+          container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--app-on-surface);opacity:0.4;">${noAppsText}</div>`;
+          return;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      filtered.forEach(pkg => {
+        const isSelected = activeSet.has(pkg.packageName);
+        
+        const item = document.createElement('div');
+        item.className = 'isolate-app-item';
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'isolate-content-wrapper';
+
+        const img = document.createElement('img');
+        img.className = 'isolate-app-icon';
+        img.src = `ksu://icon/${pkg.packageName}`; 
+        
+        img.onerror = () => {
+            if (typeof window.ksu !== 'undefined' && typeof window.ksu.getPackagesIcons === 'function') {
+                try {
+                    const iconQuery = JSON.stringify([pkg.packageName]);
+                    const iconResultStr = window.ksu.getPackagesIcons(iconQuery, 100);
+                    const iconData = JSON.parse(iconResultStr);
+                    if (iconData && iconData.length > 0 && iconData[0].icon) {
+                        img.src = iconData[0].icon;
+                        img.onerror = null; 
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            img.style.display = 'none';
+            const fallback = document.createElement('div');
+            fallback.className = 'isolate-app-icon-placeholder';
+            fallback.innerHTML = '<span class="material-symbols-outlined">android</span>';
+            wrapper.prepend(fallback);
+        };
+
+        const textGroup = document.createElement('div');
+        textGroup.className = 'isolate-text-group';
+
+        const label = document.createElement('div');
+        label.className = 'isolate-app-label';
+        label.textContent = pkg.appLabel || pkg.packageName; 
+        if (isSelected) label.style.color = "var(--app-primary)";
+
+        const subLabel = document.createElement('div');
+        subLabel.className = 'isolate-app-pkg';
+        subLabel.textContent = pkg.packageName;
+
+        textGroup.appendChild(label);
+        textGroup.appendChild(subLabel);
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(textGroup);
+
+        const switchLabel = document.createElement('label');
+        switchLabel.className = 'custom-switch';
+        
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = isSelected;
+        
+        const slider = document.createElement('span');
+        slider.className = 'switch-slider';
+
+        switchLabel.appendChild(input);
+        switchLabel.appendChild(slider);
+
+        input.addEventListener('change', async () => {
+            const uid = pkg.uid; 
+            const isChecked = input.checked;
+            
+            if (type === 'isolate') {
+                if (isChecked) {
+                    if (uid) {
+                        try {
+                            await exec(`iptables -I OUTPUT -m owner --uid-owner ${uid} -j REJECT`);
+                            await exec(`ip6tables -I OUTPUT -m owner --uid-owner ${uid} -j REJECT`);
+                        } catch(e) {}
+                    }
+                    isolatedApps.add(pkg.packageName);
+                    toast(`Isolated: ${pkg.appLabel}`);
+                } else {
+                    if (uid) {
+                        try {
+                            await exec(`iptables -D OUTPUT -m owner --uid-owner ${uid} -j REJECT 2>/dev/null || true`);
+                            await exec(`ip6tables -D OUTPUT -m owner --uid-owner ${uid} -j REJECT 2>/dev/null || true`);
+                        } catch(e) {}
+                    }
+                    isolatedApps.delete(pkg.packageName);
+                    toast(`Restored: ${pkg.appLabel}`);
+                }
+                
+                // Tulis ulang ke file langsung
+                const isoStr = Array.from(isolatedApps).join(',');
+                await exec(`echo "${isoStr}" > /data/adb/modules/PingPimp/isolate_apps.txt`);
+            } 
+            else if (type === 'prioritize') {
+                if (isChecked) {
+                    if (uid) {
+                        try {
+                            let dscpSupported = true;
+                            try {
+                                await exec(`iptables -t mangle -A OUTPUT -m owner --uid-owner 99999 -j DSCP --set-dscp 46 2>/dev/null`);
+                                await exec(`iptables -t mangle -D OUTPUT -m owner --uid-owner 99999 -j DSCP --set-dscp 46 2>/dev/null`);
+                            } catch(e) {
+                                dscpSupported = false;
+                            }
+
+                            if (dscpSupported) {
+                                await exec(`iptables -t mangle -I OUTPUT -m owner --uid-owner ${uid} -j DSCP --set-dscp 46`);
+                                await exec(`ip6tables -t mangle -I OUTPUT -m owner --uid-owner ${uid} -j DSCP --set-dscp 46`);
+                            } else {
+                                await exec(`iptables -t mangle -I OUTPUT -m owner --uid-owner ${uid} -j MARK --set-mark 0x40000000/0x40000000`);
+                                await exec(`ip6tables -t mangle -I OUTPUT -m owner --uid-owner ${uid} -j MARK --set-mark 0x40000000/0x40000000`);
+                            }
+                            
+                            await exec(`PingPimp --init-tc`);
+                        } catch(e) {}
+                    }
+                    prioritizedApps.add(pkg.packageName);
+                    toast(`Boosted: ${pkg.appLabel}`);
+                } else {
+                    if (uid) {
+                        try {
+                            await exec(`iptables -t mangle -D OUTPUT -m owner --uid-owner ${uid} -j DSCP --set-dscp 46 2>/dev/null || true`);
+                            await exec(`ip6tables -t mangle -D OUTPUT -m owner --uid-owner ${uid} -j DSCP --set-dscp 46 2>/dev/null || true`);
+                            await exec(`iptables -t mangle -D OUTPUT -m owner --uid-owner ${uid} -j MARK --set-mark 0x40000000/0x40000000 2>/dev/null || true`);
+                            await exec(`ip6tables -t mangle -D OUTPUT -m owner --uid-owner ${uid} -j MARK --set-mark 0x40000000/0x40000000 2>/dev/null || true`);
+                        } catch(e) {}
+                    }
+                    prioritizedApps.delete(pkg.packageName);
+                    toast(`Normal: ${pkg.appLabel}`);
+                }
+                
+                // Tulis ulang ke file langsung & update HW Tweak
+                const prioStr = Array.from(prioritizedApps).join(',');
+                await exec(`echo "${prioStr}" > /data/adb/modules/PingPimp/boost_apps.txt`);
+                await exec(`PingPimp --hw-tweak`);
+            }
+            renderAppList(type);
+        });
+
+        item.appendChild(wrapper);
+        item.appendChild(switchLabel);
+        fragment.appendChild(item);
+      });
+
+      container.appendChild(fragment);
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-button').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      document.querySelector(`.nav-button[data-target="${tabId}"]`).classList.add('active');
+    }
+
+    // === INIT ===
+    document.addEventListener("DOMContentLoaded", async () => {
+      const loadingOverlay = document.getElementById('loading-overlay');
+      
+      initLanguageModal();
+      const savedLang = localStorage.getItem('pingpimp_lang') || 'en';
+      await loadLanguage(savedLang);
+
+      await Promise.all([
+        updateDeviceInfo(),
+        loadPresetTweakOptions(),
+        loadTcpAlgorithms(),
+        loadPrivateDnsOptions(),
+        initSwitch("switch-netstate", "state.txt", "state", "unstate", "Network State"),
+        initSwitch("switch-saver", "saver.txt", "saver", "unsaver", "Data Saver"),
+        initSwitch("switch-ipv6", "ipv6_state.txt", "disable", "enable", "Disable IPv6"), 
+        loadAppConfigs(), 
+        fetchUserPackagesInfo()
+      ]);
+      
+      startPingMonitor();
+      rotateBannerMessage();
+      setInterval(rotateBannerMessage, 7000);
+      
+      document.querySelectorAll('.nav-button').forEach(item => {
+        item.addEventListener('click', () => showTab(item.dataset.target));
+      });
+      
+      const btnUserIso = document.getElementById('btn-user-apps-isolate');
+      const btnSysIso = document.getElementById('btn-system-apps-isolate');
+      
+      if (btnUserIso && btnSysIso) {
+        btnUserIso.addEventListener('click', () => {
+          currentIsolateView = 'user';
+          btnUserIso.classList.add('active');
+          btnSysIso.classList.remove('active');
+          renderAppList('isolate');
+        });
+        
+        btnSysIso.addEventListener('click', () => {
+          currentIsolateView = 'system';
+          btnSysIso.classList.add('active');
+          btnUserIso.classList.remove('active');
+          renderAppList('isolate');
+        });
+      }
+
+      const btnUserPrio = document.getElementById('btn-user-apps-prioritize');
+      const btnSysPrio = document.getElementById('btn-system-apps-prioritize');
+      
+      if (btnUserPrio && btnSysPrio) {
+        btnUserPrio.addEventListener('click', () => {
+          currentPrioritizeView = 'user';
+          btnUserPrio.classList.add('active');
+          btnSysPrio.classList.remove('active');
+          renderAppList('prioritize');
+        });
+        
+        btnSysPrio.addEventListener('click', () => {
+          currentPrioritizeView = 'system';
+          btnSysPrio.classList.add('active');
+          btnUserPrio.classList.remove('active');
+          renderAppList('prioritize');
+        });
+      }
+
+      renderAppList('isolate');
+      renderAppList('prioritize');
+
+      let searchTimeoutIso;
+      document.getElementById("isolate-search").addEventListener("input", () => {
+        clearTimeout(searchTimeoutIso);
+        searchTimeoutIso = setTimeout(() => { renderAppList('isolate'); }, 300);
+      });
+
+      let searchTimeoutPrio;
+      document.getElementById("prioritize-search").addEventListener("input", () => {
+        clearTimeout(searchTimeoutPrio);
+        searchTimeoutPrio = setTimeout(() => { renderAppList('prioritize'); }, 300);
+      });
+
+      loadingOverlay.style.opacity = "0";
+      setTimeout(() => { if (loadingOverlay.parentNode) loadingOverlay.remove(); }, 300);
+    });
+  </script>
+</body>
+</html>
