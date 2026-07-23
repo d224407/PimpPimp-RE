@@ -97,7 +97,7 @@ jobs:
           MODULE_DIR="PimpPimp"
           mkdir -p "$MODULE_DIR/system/bin"
           
-          cp -r template_pingpimp/* "$MODULE_DIR/" 2>/dev/null || true
+          cp -r pimppimp/* "$MODULE_DIR/" 2>/dev/null || true
           
           # Copy WebUI
           if [ -d "webroot" ]; then
