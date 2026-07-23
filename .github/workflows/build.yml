@@ -1,4 +1,4 @@
-name: Build PimpPimp
+name: Build
 
 on:
   push:
@@ -30,8 +30,8 @@ jobs:
       - name: Bump version
         id: bump_version
         run: |
-          VERSION=$(grep "^version=" template_pingpimp/module.prop | cut -d'=' -f2 | sed 's/v//')
-          VERSION_CODE=$(grep "^versionCode=" template_pingpimp/module.prop | cut -d'=' -f2)
+          VERSION=$(grep "^version=" template/module.prop | cut -d'=' -f2 | sed 's/v//')
+          VERSION_CODE=$(grep "^versionCode=" template/module.prop | cut -d'=' -f2)
           
           NEW_VERSION=$((VERSION + 1))
           NEW_VERSION_CODE=$((VERSION_CODE + 1))
@@ -39,8 +39,8 @@ jobs:
           echo "Old version: v${VERSION} (code: ${VERSION_CODE})"
           echo "New version: v${NEW_VERSION} (code: ${NEW_VERSION_CODE})"
           
-          sed -i "s/^version=v.*/version=v${NEW_VERSION}/" template_pingpimp/module.prop
-          sed -i "s/^versionCode=.*/versionCode=${NEW_VERSION_CODE}/" template_pingpimp/module.prop
+          sed -i "s/^version=v.*/version=v${NEW_VERSION}/" template/module.prop
+          sed -i "s/^versionCode=.*/versionCode=${NEW_VERSION_CODE}/" template/module.prop
           
           sed -i "s/\"version\": \".*\"/\"version\": \"${NEW_VERSION}\"/" update.json
           sed -i "s/\"versionCode\": \".*\"/\"versionCode\": \"${NEW_VERSION_CODE}\"/" update.json
@@ -52,7 +52,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add template_pingpimp/module.prop update.json
+          git add template/module.prop update.json
           git commit -m "chore: bump version to v${{ steps.bump_version.outputs.new_version }} [skip ci]" || echo "No changes to commit"
           git push || echo "No changes to push"
 
