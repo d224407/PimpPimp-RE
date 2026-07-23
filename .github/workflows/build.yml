@@ -1,7 +1,8 @@
-name: Build
+name: Build PimpPimp
 
 on:
   push:
+    branches: [ main, master ]
   workflow_dispatch:
   release:
     types: [ published ]
@@ -16,6 +17,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
@@ -23,7 +27,36 @@ jobs:
         with:
           ndk-version: r26d
 
-      - name: Build PingPimp ARMv7 (32-bit)
+      - name: Bump version
+        id: bump_version
+        run: |
+          VERSION=$(grep "^version=" template_pingpimp/module.prop | cut -d'=' -f2 | sed 's/v//')
+          VERSION_CODE=$(grep "^versionCode=" template_pingpimp/module.prop | cut -d'=' -f2)
+          
+          NEW_VERSION=$((VERSION + 1))
+          NEW_VERSION_CODE=$((VERSION_CODE + 1))
+          
+          echo "Old version: v${VERSION} (code: ${VERSION_CODE})"
+          echo "New version: v${NEW_VERSION} (code: ${NEW_VERSION_CODE})"
+          
+          sed -i "s/^version=v.*/version=v${NEW_VERSION}/" template_pingpimp/module.prop
+          sed -i "s/^versionCode=.*/versionCode=${NEW_VERSION_CODE}/" template_pingpimp/module.prop
+          
+          sed -i "s/\"version\": \".*\"/\"version\": \"${NEW_VERSION}\"/" update.json
+          sed -i "s/\"versionCode\": \".*\"/\"versionCode\": \"${NEW_VERSION_CODE}\"/" update.json
+          
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "new_version_code=${NEW_VERSION_CODE}" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add template_pingpimp/module.prop update.json
+          git commit -m "chore: bump version to v${{ steps.bump_version.outputs.new_version }} [skip ci]" || echo "No changes to commit"
+          git push || echo "No changes to push"
+
+      - name: Build PimpPimp ARMv7 (32-bit)
         run: |
           mkdir -p build/armv7
           NDK=${{ steps.setup-ndk.outputs.ndk-path }}
@@ -32,7 +65,7 @@ jobs:
           "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" --strip-all build/armv7/PingPimp
           echo "ARMv7 size: $(ls -lh build/armv7/PingPimp | awk '{print $5}')"
 
-      - name: Build PingPimp ARMv8 (64-bit)
+      - name: Build PimpPimp ARMv8 (64-bit)
         run: |
           mkdir -p build/armv8
           NDK=${{ steps.setup-ndk.outputs.ndk-path }}
@@ -41,7 +74,7 @@ jobs:
           "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" --strip-all build/armv8/PingPimp
           echo "ARMv8 size: $(ls -lh build/armv8/PingPimp | awk '{print $5}')"
 
-      - name: Build PingPimp x86 (32-bit)
+      - name: Build PimpPimp x86 (32-bit)
         run: |
           mkdir -p build/x86
           NDK=${{ steps.setup-ndk.outputs.ndk-path }}
@@ -50,7 +83,7 @@ jobs:
           "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" --strip-all build/x86/PingPimp
           echo "x86 size: $(ls -lh build/x86/PingPimp | awk '{print $5}')"
 
-      - name: Build PingPimp x86_64 (64-bit)
+      - name: Build PimpPimp x86_64 (64-bit)
         run: |
           mkdir -p build/x86_64
           NDK=${{ steps.setup-ndk.outputs.ndk-path }}
@@ -61,43 +94,49 @@ jobs:
 
       - name: Prepare Magisk module
         run: |
-          MODULE_DIR="PingPimp"
+          MODULE_DIR="PimpPimp"
           mkdir -p "$MODULE_DIR/system/bin"
           
-          # Copy template files (tất cả file module)
-          cp -r template/* "$MODULE_DIR/"
+          cp -r template_pingpimp/* "$MODULE_DIR/" 2>/dev/null || true
           
-          # Copy binaries
+          # Copy WebUI
+          if [ -d "webroot" ]; then
+            cp -r webroot "$MODULE_DIR/"
+          fi
+          
           cp build/armv7/PingPimp "$MODULE_DIR/system/bin/PingPimp_32"
           cp build/armv8/PingPimp "$MODULE_DIR/system/bin/PingPimp_64"
           cp build/x86/PingPimp "$MODULE_DIR/system/bin/PingPimp_x86"
           cp build/x86_64/PingPimp "$MODULE_DIR/system/bin/PingPimp_x64"
           
-          # Copy WebUI (nếu có)
-          if [ -d "webroot" ]; then
-            cp -r webroot "$MODULE_DIR/"
-          fi
-          
-          # Set permissions
           chmod 755 "$MODULE_DIR/system/bin/"*
           find "$MODULE_DIR" -type f -name "*.sh" -exec chmod 755 {} +
           
-          # Zip
           cd "$MODULE_DIR" && zip -r9 "../PingPimp.zip" . && cd ..
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bump_version.outputs.new_version }}
+          name: v${{ steps.bump_version.outputs.new_version }}
+          body: |
+            ## PimpPimp v${{ steps.bump_version.outputs.new_version }}
+            
+            ### Changes
+            - Auto-built from latest commit
+            - Version bumped automatically
+            
+            ### Download
+            - Flash via Magisk Manager
+          draft: false
+          prerelease: false
+          files: PingPimp.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PingPimp
+          name: PimpPimp
           path: PingPimp.zip
-
-      - name: Upload to release
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./PingPimp.zip
-          asset_name: PingPimp-${{ github.ref_name }}.zip
-          asset_content_type: application/zip
