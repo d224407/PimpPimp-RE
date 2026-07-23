@@ -30,19 +30,20 @@ jobs:
       - name: Bump version and generate changelog
         id: bump_version
         run: |
-          # Lấy version hiện tại, xóa 'v' nếu có và phân tích thành số
+          # Lấy version hiện tại, xóa 'v' nếu có
           VERSION_RAW=$(grep "^version=" template/module.prop | cut -d'=' -f2)
           VERSION=${VERSION_RAW#v}
           VERSION_CODE=$(grep "^versionCode=" template/module.prop | cut -d'=' -f2)
           
-          # Nếu version có dạng x.y, tăng phần y lên 1
+          # Tách version thành major và minor
           if [[ "$VERSION" == *"."* ]]; then
             MAJOR=$(echo "$VERSION" | cut -d'.' -f1)
             MINOR=$(echo "$VERSION" | cut -d'.' -f2)
             NEW_MINOR=$((MINOR + 1))
             NEW_VERSION="${MAJOR}.${NEW_MINOR}"
           else
-            NEW_VERSION=$((VERSION + 1))
+            # Nếu version là số nguyên (vd: 1), chuyển thành 1.0
+            NEW_VERSION="${VERSION}.0"
           fi
           
           NEW_VERSION_CODE=$((VERSION_CODE + 1))
@@ -62,11 +63,9 @@ jobs:
           CHANGELOG_ENTRY="## v${NEW_VERSION} - $(date +'%Y-%m-%d')\n\n"
           CHANGELOG_ENTRY="${CHANGELOG_ENTRY}### Changes\n"
           
-          # Lấy 5 commit gần nhất (trừ commit bump version nếu có)
           COMMITS=$(git log --pretty=format:"- %s" -n 5)
           CHANGELOG_ENTRY="${CHANGELOG_ENTRY}${COMMITS}\n\n"
           
-          # Ghi vào CHANGELOG.md
           echo -e "${CHANGELOG_ENTRY}" > temp_changelog.md
           cat CHANGELOG.md >> temp_changelog.md 2>/dev/null || true
           mv temp_changelog.md CHANGELOG.md
