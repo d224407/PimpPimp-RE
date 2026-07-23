@@ -122,13 +122,7 @@ jobs:
           name: v${{ steps.bump_version.outputs.new_version }}
           body: |
             ## PimpPimp v${{ steps.bump_version.outputs.new_version }}
-            
-            ### Changes
-            - Auto-built from latest commit
-            - Version bumped automatically
-            
-            ### Download
-            - Flash via Magisk Manager
+            **Full Changelog**: https://github.com/d224407/PimpPimp-RE/commits
           draft: false
           prerelease: false
           files: PingPimp.zip
